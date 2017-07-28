@@ -1,0 +1,15 @@
+{
+	"name": "socket-chat",
+	"scripts": {
+		"bower": "bower install",
+		"redis": "npm run redis-stop && npm run redis-start",
+		"redis-stop": "docker rm -f redis || exit 0",
+		"redis-start": "docker run -d -p 6379:6379 --name redis redis"
+	},
+	"dependencies": {
+		"bower": "^1.8.0",
+		"express": "^4.13.3",
+		"redis": "^0.12.1",
+		"socket.io": "^1.3.6"
+	}
+}
