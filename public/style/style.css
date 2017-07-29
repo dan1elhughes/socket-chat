@@ -10,12 +10,13 @@ li {
 
 ul {
 	margin: 0;
+	margin-bottom: 56px;
 	padding: 0;
 }
 
 form {
 	padding: 12px;
-	border-top: 12px solid grey;
+	border-top: 6px solid grey;
 	position: fixed;
 	bottom: 0;
 	left: 0;
@@ -25,7 +26,6 @@ form {
 input {
 	width: 90%;
 	max-width: 1024px;
-	margin: auto;
 }
 
 .note {

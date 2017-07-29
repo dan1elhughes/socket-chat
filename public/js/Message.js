@@ -24,11 +24,8 @@ Message.prototype = {
 
 		var text = unescape(this.text);
 
-		if (text !== this.linker.link(text)) {
-			$el.html(this.linker.link(text));
-		} else {
-			$el.text(text);
-		}
+		$el.html(this.linker.link(text));
+
 		parent.append($el);
 		window.scrollTo(0,document.body.scrollHeight);
 		return this;

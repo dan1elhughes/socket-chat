@@ -1,83 +1,63 @@
-var express = require('express');
-var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-var redis = require('redis').createClient({
-	host: 'redis'
-});
-var Message = require('./Message.js');
-var port = process.env.PORT || 8000;
+const express = require('express');
+const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
+const Cache = require('./Cache');
+const Message = require('./Message.js');
+const port = process.env.PORT || 3000;
+
+let cache = new Cache(30);
 
 app.use(express.static('public'));
 app.use(express.static('bower_components'));
 
-var redisPrefix = 'socket-chat:';
-redis.on('error', function(err) {
-	console.log('Error ' + err);
-});
+io.on('connection', socket => {
 
-app.get('/', function(req, res) {
-	res.sendFile(__dirname + '/index.html');
-});
+	let hex;
 
-io.on('connection', function(socket) {
-	socket.on('message', function(incoming) {
-		new Message({
-			hex: incoming.hex,
-			channel: 'message',
-			text: incoming.text
-		}).send(io).log(redis);
-	});
-
-	socket.on('join', function(hex) {
+	socket.on('join', colour => {
+		hex = colour;
 		new Message({
 			hex: hex,
 			channel: 'note',
-			text: hex + ' joined (' + io.engine.clientsCount + ')'
-		}).send(io).log(redis);
+			text: hex + ' joined (' + io.engine.clientsCount + ')',
+		}).send(io).log(cache);
 	});
 
-	socket.on('disconnect', function() {
+	socket.on('message', incoming => {
 		new Message({
-			hex: null,
+			hex: incoming.hex,
+			channel: 'message',
+			text: incoming.text,
+		}).send(io).log(cache);
+	});
+
+	socket.on('disconnect', () => {
+		new Message({
+			hex: hex,
 			channel: 'note',
-			text: 'Someone quit (' + io.engine.clientsCount + ')'
-		}).send(io).log(redis);
+			text: `${hex} quit (${io.engine.clientsCount})`,
+		}).send(io).log(cache);
 	});
 });
 
-app.get('/api/messages', function(req, res) {
-	redis.lrange(redisPrefix + 'log', 0, -1, function(err, items) {
-		if (err) return err;
+app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 
-		res.send(items.map(function(item) {
-			return {
-				timestamp: item.split(':')[0],
-				hex: item.split(':')[1],
-				channel: item.split(':')[2],
-				text: item.split(':')[3],
-			};
-		}));
-	});
+app.get('/api/messages', (req, res) => res.send(cache.data.map(item => ({
+	timestamp: item[0],
+	hex: item[1],
+	channel: item[2],
+	text: item[3],
+}))));
+
+app.get('/api/reload', (req, res) => {
+	new Message({
+		hex: null,
+		channel: 'refresh',
+		text: 'Forcing refresh',
+	}).send(io);
+
+	res.sendStatus(200);
 });
 
-app.get('/api/reload/:secret', function(req, res) {
-	if (req.params.secret === 'secret') {
-		new Message({
-			hex: null,
-			channel: 'refresh',
-			text: 'Forcing refresh'
-		}).send();
-		res.send({
-			result: 'sent'
-		});
-	} else {
-		res.send({
-			result: 'Invalid secret'
-		});
-	}
-});
-
-http.listen(port, function() {
-	console.log('Listening on port %s', port);
-});
+http.listen(port, () => console.log(`Listening on port ${port}`));

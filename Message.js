@@ -1,28 +1,23 @@
-function Message(options) {
+module.exports = function(options) {
 	this.hex = options.hex;
 	this.channel = options.channel;
 	this.text = options.text;
-}
 
-Message.prototype = {
-	send: function(io) {
+	this.send = io => {
 		io.emit(this.channel, {
 			hex: this.hex,
-			text: this.text
+			text: this.text,
 		});
 		return this;
 	},
 
-	log: function(redis) {
-		redis.lpush('socket-chat:log', [
+	this.log = cache => {
+		cache.add([
 			Date.now(),
 			this.hex,
 			this.channel,
-			this.text
-		].join(':'));
-		redis.ltrim('socket-chat:log', 0, 30);
+			this.text,
+		]);
 		return this;
-	},
+	};
 };
-
-module.exports = Message;

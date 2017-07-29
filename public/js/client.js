@@ -11,6 +11,7 @@ $(function() {
 
 	// Load previous messages from log
 	$.get('/api/messages', function(data) {
+
 		data.sort(function(a, b) {
 			return a.timestamp - b.timestamp;
 		});
