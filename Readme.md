@@ -7,12 +7,12 @@ A server for running a WebSocket-based anonymous chat, and an experiment in buil
 
 ### Run
 
-- `docker run -p 30000:3000 dan1elhughes/chat`
+- `docker run -p 30000:3000 dan1elhughes/socket-chat`
 - Open `localhost:30000` on the exposed port in a browser
 
 ### Build
 
-- `docker build -t dan1elhughes/chat .`
+- `docker build -t dan1elhughes/socket-chat .`
 
 ## Locally
 
