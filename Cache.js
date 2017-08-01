@@ -6,6 +6,7 @@ module.exports = function(length) {
 
 	this.add = item => {
 		this.push(item);
+		console.log(item);
 		this.trim(this.length);
 	};
 
